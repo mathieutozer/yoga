@@ -1,0 +1,19 @@
+PODS:
+  - Yoga (1.3.0)
+  - YogaKit (1.3.0):
+    - Yoga (~> 1.3)
+
+DEPENDENCIES:
+  - YogaKit (from `../../YogaKit.podspec`)
+
+EXTERNAL SOURCES:
+  YogaKit:
+    :path: ../../YogaKit.podspec
+
+SPEC CHECKSUMS:
+  Yoga: 2ed1d7accfef3610a67f58c0cf101a0662137f2c
+  YogaKit: a7af6fb887ee83d1a9c4053e84d50434716a5bce
+
+PODFILE CHECKSUM: ef8b846d94b558a2c756d6a2f2f094edfba745f1
+
+COCOAPODS: 1.1.1
