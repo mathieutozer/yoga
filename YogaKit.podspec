@@ -14,7 +14,9 @@ podspec = Pod::Spec.new do |spec|
     :tag => '1.3.0',
   }
 
-  spec.platform = :ios
+  spec.platform = :ios, :osx
+  spec.osx.deployment_target = '10.11'
+  spec.osx.frameworks = 'AppKit'
   spec.ios.deployment_target = '8.0'
   spec.ios.frameworks = 'UIKit'
 

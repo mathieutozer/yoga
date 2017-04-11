@@ -85,11 +85,24 @@ YG_VALUE_EDGE_PROPERTY(lowercased_name##Horizontal, capitalized_name##Horizontal
 YG_VALUE_EDGE_PROPERTY(lowercased_name##Vertical, capitalized_name##Vertical, capitalized_name, YGEdgeVertical)       \
 YG_VALUE_EDGE_PROPERTY(lowercased_name, capitalized_name, capitalized_name, YGEdgeAll)
 
+#if TARGET_OS_OSX
+@implementation NSView (SizeThatFits)
+
+- (CGSize)sizeThatFits:(CGSize)size
+{
+  // obviously do some proper size math here based in the contents of the NSView
+  return CGSizeMake(50, 50);
+}
+
+@end
+#endif
+
+
 static YGConfigRef globalConfig;
 
 @interface YGLayout ()
 
-@property (nonatomic, weak, readonly) UIView *view;
+@property (nonatomic, weak, readonly) YGView *view;
 
 @end
 
@@ -105,7 +118,7 @@ static YGConfigRef globalConfig;
   YGConfigSetExperimentalFeatureEnabled(globalConfig, YGExperimentalFeatureWebFlexBasis, true);
 }
 
-- (instancetype)initWithView:(UIView*)view
+- (instancetype)initWithView:(YGView*)view
 {
   if (self = [super init]) {
     _view = view;
@@ -154,7 +167,7 @@ static YGConfigRef globalConfig;
 {
   NSAssert([NSThread isMainThread], @"This method must be called on the main thread.");
   if (self.isEnabled) {
-    for (UIView *subview in self.view.subviews) {
+    for (YGView *subview in self.view.subviews) {
       YGLayout *const yoga = subview.yoga;
       if (yoga.isEnabled && yoga.isIncludedInLayout) {
         return NO;
@@ -276,7 +289,7 @@ static YGSize YGMeasureView(
   const CGFloat constrainedWidth = (widthMode == YGMeasureModeUndefined) ? CGFLOAT_MAX : width;
   const CGFloat constrainedHeight = (heightMode == YGMeasureModeUndefined) ? CGFLOAT_MAX: height;
 
-  UIView *view = (__bridge UIView*) YGNodeGetContext(node);
+  YGView *view = (__bridge YGView*) YGNodeGetContext(node);
   const CGSize sizeThatFits = [view sizeThatFits:(CGSize) {
     .width = constrainedWidth,
     .height = constrainedHeight,
@@ -305,7 +318,7 @@ static CGFloat YGSanitizeMeasurement(
   return result;
 }
 
-static BOOL YGNodeHasExactSameChildren(const YGNodeRef node, NSArray<UIView *> *subviews)
+static BOOL YGNodeHasExactSameChildren(const YGNodeRef node, NSArray<YGView *> *subviews)
 {
   if (YGNodeGetChildCount(node) != subviews.count) {
     return NO;
@@ -320,7 +333,7 @@ static BOOL YGNodeHasExactSameChildren(const YGNodeRef node, NSArray<UIView *> *
   return YES;
 }
 
-static void YGAttachNodesFromViewHierachy(UIView *const view)
+static void YGAttachNodesFromViewHierachy(YGView *const view)
 {
   YGLayout *const yoga = view.yoga;
   const YGNodeRef node = yoga.node;
@@ -332,8 +345,8 @@ static void YGAttachNodesFromViewHierachy(UIView *const view)
   } else {
     YGNodeSetMeasureFunc(node, NULL);
 
-    NSMutableArray<UIView *> *subviewsToInclude = [[NSMutableArray alloc] initWithCapacity:view.subviews.count];
-    for (UIView *subview in view.subviews) {
+    NSMutableArray<YGView *> *subviewsToInclude = [[NSMutableArray alloc] initWithCapacity:view.subviews.count];
+    for (YGView *subview in view.subviews) {
       if (subview.yoga.isIncludedInLayout) {
         [subviewsToInclude addObject:subview];
       }
@@ -346,7 +359,7 @@ static void YGAttachNodesFromViewHierachy(UIView *const view)
       }
     }
 
-    for (UIView *const subview in subviewsToInclude) {
+    for (YGView *const subview in subviewsToInclude) {
       YGAttachNodesFromViewHierachy(subview);
     }
   }
@@ -368,13 +381,15 @@ static CGFloat YGRoundPixelValue(CGFloat value)
   static CGFloat scale;
   static dispatch_once_t onceToken;
   dispatch_once(&onceToken, ^(){
-    scale = [UIScreen mainScreen].scale;
+    // todo - also this doesn't support multiple screens
+    scale = 1.0;
+    //scale = [UIScreen mainScreen].scale;
   });
 
   return roundf(value * scale) / scale;
 }
 
-static void YGApplyLayoutToViewHierarchy(UIView *view, BOOL preserveOrigin)
+static void YGApplyLayoutToViewHierarchy(YGView *view, BOOL preserveOrigin)
 {
   NSCAssert([NSThread isMainThread], @"Framesetting should only be done on the main thread.");
 

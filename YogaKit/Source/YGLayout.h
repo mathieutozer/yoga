@@ -7,7 +7,14 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 
+#if TARGET_OS_IOS
 #import <UIKit/UIKit.h>
+#elif TARGET_OS_OSX
+#import <AppKit/AppKit.h>
+@interface NSView (SizeThatFits);
+- (CGSize)sizeThatFits:(CGSize)size;
+@end
+#endif
 #import <yoga/YGEnums.h>
 
 @interface YGLayout : NSObject

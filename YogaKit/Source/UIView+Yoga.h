@@ -8,13 +8,21 @@
  */
 
 #import "YGLayout.h"
+#if TARGET_OS_IOS
 #import <UIKit/UIKit.h>
+#elif TARGET_OS_OSX
+#import <AppKit/AppKit.h>
+#endif
 
 NS_ASSUME_NONNULL_BEGIN
 
 typedef void (^YGLayoutConfigurationBlock)(YGLayout *);
 
+#if TARGET_OS_IOS
 @interface UIView (Yoga)
+#elif TARGET_OS_OSX
+@interface NSView (Yoga)
+#endif
 
 /**
  The YGLayout that is attached to this view. It is lazily created.
